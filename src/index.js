@@ -1,1 +1,2 @@
 // import "./lazyman";
+import "./promise";
