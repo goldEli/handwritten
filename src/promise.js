@@ -1,8 +1,12 @@
+const pending = "PENDING";
+const rejecting = "REJECTED";
+const fulfilled = "FULFILLED";
 class MyPromise {
   // pendding\
   constructor(func) {
     this.errs = [];
     this.sucs = [];
+    this.status = pending;
     func(this.resolve.bind(this), this.reject.bind(this));
   }
   then(resolve, reject) {
@@ -11,59 +15,57 @@ class MyPromise {
     return this;
   }
   resolve(success) {
-    setTimeout(() => {
-      this.sucs.forEach((suc) => {
-        suc(success);
-      });
-    }, 0);
+    if (this.status === pending) {
+      this.status = fulfilled;
+      setTimeout(() => {
+        this.sucs.forEach((suc) => {
+          suc(success);
+        });
+      }, 0);
+    }
   }
   reject(error) {
-    setTimeout(() => {
-      this.errs.forEach((err) => {
+    if (this.status === pending) {
+      this.status = rejecting;
+      setTimeout(() => {
+        this.errs.forEach((err) => {
+          err(error);
+        });
+        const err = this.errs.shift();
         err(error);
-      });
-      const err = this.errs.shift();
-      err(error);
-    }, 0);
+      }, 0);
+    }
   }
 }
 
 function test1() {
-  function resolve(arg) {
-    console.log(arg);
-  }
-  function reject(arg) {
-    console.log(arg);
-  }
+  console.log("===test promise");
   new Promise((resolve, reject) => {
-    console.log("mypromise");
     resolve("success");
-    // reject("error");
-  })
-    .then(resolve, reject)
-    .then(
-      (data) => console.log(data),
-      (error) => console.log(error)
-    );
+    reject("error");
+  }).then(
+    (data) => {
+      console.log(data);
+    },
+    (data) => {
+      console.log(data);
+    }
+  );
 }
 function test2() {
-  function resolve(arg) {
-    console.log(arg);
-  }
-  function reject(arg) {
-    console.log(arg);
-  }
-  new MyPromise((resolve, reject) => {
-    console.log("mypromise");
+  console.log("===test my promise");
+  new Promise((resolve, reject) => {
     resolve("success");
-    // reject("error");
-  })
-    .then(resolve, reject)
-    .then(
-      (data) => console.log(data),
-      (error) => console.log(error)
-    );
+    reject("error");
+  }).then(
+    (data) => {
+      console.log(data);
+    },
+    (data) => {
+      console.log(data);
+    }
+  );
 }
 
 test1();
-// test2();
+test2();
