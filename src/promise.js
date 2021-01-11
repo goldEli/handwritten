@@ -7,7 +7,15 @@ class MyPromise {
     this.errs = [];
     this.sucs = [];
     this.status = pending;
-    func(this.resolve.bind(this), this.reject.bind(this));
+    this.catchError = null;
+    try {
+      func(this.resolve.bind(this), this.reject.bind(this));
+    } catch (error) {
+      this.catchError = error;
+    }
+  }
+  catch(callback) {
+    this.catchError && callback(this.catchError);
   }
   then(resolve, reject) {
     this.errs.push(reject);
@@ -38,33 +46,31 @@ class MyPromise {
   }
 }
 
+MyPromise.prototype.all = (funcs) => {};
+
 function test1() {
   console.log("===test promise");
-  new Promise((resolve, reject) => {
-    resolve("success");
-    reject("error");
-  }).then(
-    (data) => {
-      console.log(data);
-    },
-    (data) => {
-      console.log(data);
-    }
-  );
+
+  Promise.all([
+    new Promise((resolve, reject) => setTimeout(() => resolve(1), 1000)),
+    new Promise((resolve, reject) => setTimeout(() => resolve(2), 2000)),
+    new Promise((resolve, reject) => setTimeout(() => resolve(3), 3000))
+  ]).then((data) => console.log(data));
 }
 function test2() {
   console.log("===test my promise");
-  new Promise((resolve, reject) => {
-    resolve("success");
-    reject("error");
-  }).then(
-    (data) => {
-      console.log(data);
-    },
-    (data) => {
-      console.log(data);
-    }
-  );
+
+  let p = new MyPromise((resolve) => {
+    setTimeout(() => {
+      resolve(1);
+    }, 3000);
+  });
+
+  p.then((res) => {
+    console.log(res);
+  });
+
+  console.log(2);
 }
 
 test1();
